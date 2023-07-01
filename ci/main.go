@@ -40,6 +40,13 @@ func main() {
 		panic(err)
 	}
 
+	/*
+			Dagger SDKs rely on your existing Docker credentials for registry authentication.
+		    This means that you must either execute docker login on the Dagger host,
+		    or invoke the Container.withRegistryAuth() API method in your Dagger pipeline,
+		    before attempting to publish an image to that registry.
+	*/
+
 	ref, err := client.Container().
 		From("nginx:1.23-alpine").
 		WithDirectory("/usr/share/nginx/html", client.Host().Directory("./build")).
