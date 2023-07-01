@@ -21,14 +21,19 @@ func main() {
 	}
 	defer client.Close()
 
+	// create a cache volume
+	nodeCache := client.CacheVolume("node")
+
 	// use a node:16-slim container
 	// mount the source code directory on the host
 	// at /src in the container
+	// mount the cache volume to persist dependencies
 	source := client.Container().
 		From("node:16-slim").
 		WithDirectory("/src", client.Host().Directory("."), dagger.ContainerWithDirectoryOpts{
 			Exclude: []string{"node_modules/", "ci/"},
-		})
+		}).
+		WithMountedCache("/src/node_modules", nodeCache)
 
 		// set the working directory in the container
 		// install application dependencies
@@ -51,7 +56,6 @@ func main() {
 		From("nginx:1.23-alpine").
 		WithDirectory("/usr/share/nginx/html", buildDir).
 		Publish(ctx, fmt.Sprintf("ttl.sh/hello-dagger-%.0f", math.Floor(rand.Float64()*10000000))) //#nosec
-
 	if err != nil {
 		panic(err)
 	}
